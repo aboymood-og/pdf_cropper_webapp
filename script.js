@@ -3,10 +3,10 @@ const pdfInput = document.getElementById("pdfInput");
 const statusText = document.getElementById("status");
 
 // Parámetros de recorte (en puntos)
-const LEFT_PT = 35;
-const TOP_PT = 35;
-const RIGHT_PT = 305;
-const BOTTOM_PT = 415;
+const LEFT_PT = 5;
+const TOP_PT = 100;
+const RIGHT_PT = 293;
+const BOTTOM_PT = 360;
 
 cropBtn.addEventListener("click", async () => {
   const file = pdfInput.files[0];
