@@ -2,11 +2,14 @@ const cropBtn = document.getElementById("cropBtn");
 const pdfInput = document.getElementById("pdfInput");
 const statusText = document.getElementById("status");
 
-// Parámetros de recorte (en puntos)
-const LEFT_PT = 5;
-const TOP_PT = 100;
-const RIGHT_PT = 293;
-const BOTTOM_PT = 360;
+// Perfiles solicitados (mismos valores que diste)
+const PERFIL_ANTIGUA = { LEFT_PT: 35, TOP_PT: 35, RIGHT_PT: 340, BOTTOM_PT: 415 };
+const PERFIL_NUEVA   = { LEFT_PT: 5,  TOP_PT: 70, RIGHT_PT: 298, BOTTOM_PT: 360 };
+
+function getPerfilSeleccionado() {
+  const antigua = document.getElementById("perfilAntigua");
+  return antigua && antigua.checked ? PERFIL_ANTIGUA : PERFIL_NUEVA;
+}
 
 cropBtn.addEventListener("click", async () => {
   const file = pdfInput.files[0];
@@ -20,16 +23,34 @@ cropBtn.addEventListener("click", async () => {
     const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
     const pages = pdfDoc.getPages();
 
+    // Lee el perfil elegido (Antigua/Nueva)
+    const P = getPerfilSeleccionado();
+
     pages.forEach((page) => {
       const { width, height } = page.getSize();
 
-      const newLeft = Math.max(0, LEFT_PT);
-      const newBottom = Math.max(0, height - BOTTOM_PT);
-      const newRight = Math.min(RIGHT_PT, width);
-      const newTop = Math.min(height - TOP_PT, height);
+      // Tu semántica original:
+      // LEFT/RIGHT = coordenadas X directas desde la izquierda (xMin/xMax)
+      // TOP/BOTTOM = distancias medidas desde ARRIBA -> convertir a coordenadas Y
+      const xMin = Math.max(0, Math.min(P.LEFT_PT, width));
+      const xMax = Math.max(0, Math.min(P.RIGHT_PT, width));
 
-      // Ajuste del crop box (xMin, yMin, xMax, yMax)
-      page.setCropBox(newLeft, newBottom, newRight, newTop);
+      const yTop    = Math.max(0, Math.min(height - P.TOP_PT, height));     // coord Y del borde superior
+      const yBottom = Math.max(0, Math.min(height - P.BOTTOM_PT, height));  // coord Y del borde inferior
+
+      const x = Math.min(xMin, xMax);
+      const y = Math.min(yBottom, yTop);
+      const w = Math.max(0, Math.abs(xMax - xMin));
+      const h = Math.max(0, Math.abs(yTop - yBottom));
+
+      if (w <= 0 || h <= 0) {
+        throw new Error("El rectángulo de recorte es inválido con estos parámetros.");
+      }
+
+      // pdf-lib espera (x, y, width, height)
+      page.setCropBox(x, y, w, h);
+      // Si quisieras que algunos visores lo “recorten duro”, podrías también:
+      // page.setMediaBox(x, y, w, h);
     });
 
     const pdfBytes = await pdfDoc.save();

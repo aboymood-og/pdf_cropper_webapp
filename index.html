@@ -9,6 +9,19 @@
   <div class="container">
     <h1>Recortar PDF</h1>
     <input type="file" id="pdfInput" accept="application/pdf">
+
+    <!-- NUEVO: Selector de perfil -->
+    <div id="perfilRecorte" style="margin:10px 0;">
+      <label style="margin-right:10px;">
+        <input type="radio" name="perfil" id="perfilAntigua" value="antigua">
+        Antigua
+      </label>
+      <label>
+        <input type="radio" name="perfil" id="perfilNueva" value="nueva" checked>
+        Nueva
+      </label>
+    </div>
+
     <button id="cropBtn">Recortar y Descargar</button>
     <p id="status"></p>
   </div>
